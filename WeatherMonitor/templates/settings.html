@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - HomeWeather{% endblock %}
+
+{% block page_title %}User Settings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header">
+                <h3><i class="fas fa-cog me-2"></i>Alert Preferences</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('main.settings') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <h5 class="mb-3">Notification Methods</h5>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                {{ form.email_alerts(class="form-check-input") }}
+                                <label class="form-check-label" for="{{ form.email_alerts.id }}">
+                                    {{ form.email_alerts.label }}
+                                </label>
+                            </div>
+                            <div class="form-text">Receive alert notifications via email ({{ current_user.email }})</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                {{ form.sms_alerts(class="form-check-input") }}
+                                <label class="form-check-label" for="{{ form.sms_alerts.id }}">
+                                    {{ form.sms_alerts.label }}
+                                </label>
+                            </div>
+                            <div class="form-text">Receive alert notifications via SMS</div>
+                        </div>
+                    </div>
+                    
+                    {% if form.phone_number %}
+                    <div class="mb-4">
+                        <label for="{{ form.phone_number.id }}" class="form-label">{{ form.phone_number.label }}</label>
+                        {{ form.phone_number(class="form-control") }}
+                        {% for error in form.phone_number.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">International format with country code, used for SMS alerts</div>
+                    </div>
+                    {% endif %}
+                    
+                    <h5 class="mb-3">Alert Thresholds</h5>
+                    
+                    <!-- Temperature thresholds -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.temperature_alert_min.id }}" class="form-label">
+                                <i class="fas fa-temperature-low me-1"></i>{{ form.temperature_alert_min.label }}
+                            </label>
+                            {{ form.temperature_alert_min(class="form-control") }}
+                            {% for error in form.temperature_alert_min.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.temperature_alert_max.id }}" class="form-label">
+                                <i class="fas fa-temperature-high me-1"></i>{{ form.temperature_alert_max.label }}
+                            </label>
+                            {{ form.temperature_alert_max(class="form-control") }}
+                            {% for error in form.temperature_alert_max.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Humidity thresholds -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.humidity_alert_min.id }}" class="form-label">
+                                <i class="fas fa-tint-slash me-1"></i>{{ form.humidity_alert_min.label }}
+                            </label>
+                            {{ form.humidity_alert_min(class="form-control") }}
+                            {% for error in form.humidity_alert_min.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.humidity_alert_max.id }}" class="form-label">
+                                <i class="fas fa-tint me-1"></i>{{ form.humidity_alert_max.label }}
+                            </label>
+                            {{ form.humidity_alert_max(class="form-control") }}
+                            {% for error in form.humidity_alert_max.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Air quality threshold -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="{{ form.air_quality_alert.id }}" class="form-label">
+                                <i class="fas fa-wind me-1"></i>{{ form.air_quality_alert.label }}
+                            </label>
+                            {{ form.air_quality_alert(class="form-control") }}
+                            {% for error in form.air_quality_alert.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h3><i class="fas fa-user me-2"></i>Account Information</h3>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Username</dt>
+                    <dd class="col-sm-8">{{ current_user.username }}</dd>
+                    
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">{{ current_user.email }}</dd>
+                    
+                    <dt class="col-sm-4">Phone Number</dt>
+                    <dd class="col-sm-8">{{ current_user.phone_number or 'Not set' }}</dd>
+                    
+                    <dt class="col-sm-4">Account Created</dt>
+                    <dd class="col-sm-8">{{ current_user.created_at }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle me-2"></i>About HomeWeather</h3>
+            </div>
+            <div class="card-body">
+                <p>HomeWeather is a real-time weather monitoring web application designed to track and display environmental data collected from home sensors.</p>
+                <h4>Features</h4>
+                <ul>
+                    <li>Connect to ESP8266 sensors for temperature, humidity, rain, and air quality monitoring</li>
+                    <li>Real-time dashboard with current readings and historical trends</li>
+                    <li>Customizable alerts via email and SMS</li>
+                    <li>Anomaly detection</li>
+                    <li>Advanced ML-based predictions for future conditions</li>
+                </ul>
+                <h4>Supported Sensors</h4>
+                <ul>
+                    <li>DHT22 (Temperature & Humidity)</li>
+                    <li>YL-38 (Rain sensor)</li>
+                    <li>MQ-135 (Air quality sensor)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% endblock %}

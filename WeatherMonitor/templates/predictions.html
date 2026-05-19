@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-magic me-2"></i>Prédictions météo avancées</h1>
+            </div>
+            <hr>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-sliders-h me-2"></i>Paramètres de prédiction</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.hours.label(class="form-label") }}
+                            {{ form.hours(class="form-select") }}
+                        </div>
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>Sélectionnez l'horizon temporel pour générer les prévisions.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-robot me-2"></i>Prédictions avancées (RandomForest)</h5>
+                </div>
+                <div class="card-body">
+                    <p>Le moteur de prédiction HomeWeather utilise un modèle <strong>RandomForest</strong> pour prévoir les conditions environnementales à venir :</p>
+                    {% if advanced_predictions %}
+                    <h5 class="mb-4"><i class="fas fa-clock me-2"></i>Prédiction à {{ form.hours.data }} heures</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-temperature-high fa-3x text-danger mb-3"></i>
+                                    <h6 class="card-title">Température prédite</h6>
+                                    {% if advanced_predictions.temperature is not none %}
+                                        <h3 class="text-primary">{{ advanced_predictions.temperature|round(2) }} °C</h3>
+                                    {% else %}
+                                        <h3 class="text-muted">N/A</h3>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-info">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-tint fa-3x text-info mb-3"></i>
+                                    <h6 class="card-title">Humidité prédite</h6>
+                                    {% if advanced_predictions.humidity is not none %}
+                                        <h3 class="text-primary">{{ advanced_predictions.humidity|round(2) }} %</h3>
+                                    {% else %}
+                                        <h3 class="text-muted">N/A</h3>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-success">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-cloud-rain fa-3x text-success mb-3"></i>
+                                    <h6 class="card-title">Pluie prédite</h6>
+                                    {% if advanced_predictions.rain is not none %}
+                                        <h3 class="text-primary">{{ advanced_predictions.rain|round(2) }} mm</h3>
+                                    {% else %}
+                                        <h3 class="text-muted">N/A</h3>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-warning">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-wind fa-3x text-warning mb-3"></i>
+                                    <h6 class="card-title">Gaz prédit</h6>
+                                    {% if advanced_predictions.gas is not none %}
+                                        <h3 class="text-primary">{{ advanced_predictions.gas|round(2) }} ppm</h3>
+                                    {% else %}
+                                        <h3 class="text-muted">N/A</h3>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Pas de prédiction avancée disponible.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bloc d'alerte d'anomalie -->
+    {% if anomaly %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Anomalie détectée !</strong> Les dernières données capteurs semblent inhabituelles.
+    </div>
+    {% endif %}
+
+    <!-- Prédictions classiques -->
+    {% if predictions %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Prédictions classiques</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-temperature-high fa-2x text-danger me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Tendance température</h6>
+                                    <p class="mb-0">{{ predictions.temperature_trend }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-cloud-rain fa-2x text-info me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Probabilité de pluie</h6>
+                                    <p class="mb-0">{{ predictions.rain_probability }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-wind fa-2x text-warning me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Qualité de l'air</h6>
+                                    <p class="mb-0">{{ predictions.gas_forecast }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-smile fa-2x text-success me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Niveau de confort</h6>
+                                    <p class="mb-0">{{ predictions.comfort_level }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Graphiques historiques -->
+    {% if historical_data %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Tendances historiques (3 jours)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-3">
+                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-temperature-high me-2"></i>Température</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="temperatureChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+                            <div class="card mb-3">
+                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-tint me-2"></i>Humidité</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="humidityChart" height="300"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if historical_data %}
+    // Préparation des données pour les graphiques
+    const labels = [];
+    const temperatureData = [];
+    const humidityData = [];
+    
+    {% for reading in historical_data %}
+    labels.push('{{ reading.timestamp | timestamp_to_date }}');
+    temperatureData.push({{ reading.temperature|default('null') }});
+    humidityData.push({{ reading.humidity|default('null') }});
+    {% endfor %}
+    
+    // Formatage des labels pour l'affichage
+    const formattedLabels = labels.map(timestamp => {
+        const date = new Date(timestamp);
+        return formatDateForChart(date, 'datetime');
+    });
+    
+    // Création du graphique de température
+    createTemperatureChart('temperatureChart', formattedLabels, temperatureData, {
+        showLegend: false,
+        animations: true,
+        fill: true,
+    });
+    
+    // Création du graphique d'humidité
+    createHumidityChart('humidityChart', formattedLabels, humidityData, {
+        showLegend: false,
+        animations: true,
+        fill: true,
+    });
+    
+    {% endif %}
+});
+</script>
+{% endblock %}

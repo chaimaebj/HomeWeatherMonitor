@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - HomeWeather{% endblock %}
+
+{% block page_title %}Weather Dashboard{% endblock %}
+
+{% block content %}
+<!-- Weather Dashboard Hero Section -->
+<div class="hero-section mb-4 animated-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <h1 class="display-5 text-white mb-3"><i class="fas fa-tachometer-alt me-2"></i>Home Weather Station</h1>
+                <p class="lead text-white-50">Real-time monitoring of your environment conditions</p>
+            </div>
+            <div class="col-md-4 d-none d-md-flex justify-content-end align-items-center">
+                <div class="text-center text-white">
+                    <div class="weather-icon">
+                        <i class="fas fa-cloud-sun-rain"></i>
+                    </div>
+                    <div class="weather-info">
+                        <h4>HomeWeather</h4>
+                        <p class="mb-0">Smart Environmental Monitoring</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Alerts Section -->
+<div class="row mt-3 animated-section">
+    <div class="col-12">
+        <h2><i class="fas fa-bell me-2"></i>Recent Alerts</h2>
+        <hr>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Last 24 Hours</h5>
+                <a href="{{ url_for('main.alerts') }}" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-history me-1"></i>View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_alerts %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Device</th>
+                                <th>Type</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alert in recent_alerts %}
+                            <tr class="{% if not alert.acknowledged %}table-warning{% endif %}">
+                                <td>{{ alert.timestamp.strftime('%H:%M:%S') }}</td>
+                                <td>{{ alert.device_id }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if 'temperature' in alert.alert_type %}bg-danger
+                                        {% elif 'humidity' in alert.alert_type %}bg-primary
+                                        {% elif 'rain' in alert.alert_type %}bg-info
+                                        {% elif 'air_quality' in alert.alert_type %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ alert.alert_type.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if alert.acknowledged %}
+                                    <span class="badge bg-success">Acknowledged</span>
+                                    {% else %}
+                                    <form action="{{ url_for('main.acknowledge_alert', alert_id=alert.id) }}" method="post" class="d-inline">
+                                        <input type="hidden" name="next" value="{{ url_for('main.dashboard') }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning">Acknowledge</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No recent alerts.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Conditions Section -->
+<div class="row mt-3 animated-section">
+    <div class="col-12">
+        <h2><i class="fas fa-cloud-sun me-2"></i>Current Conditions</h2>
+        <hr>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Latest Measurements</h5>
+                {% if data.timestamp %}
+                    <small class="text-muted">{{ data.timestamp | timestamp_to_date('%H:%M') }}</small>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="me-3">
+                        <i class="wi wi-day-sunny display-1 text-warning"></i>
+                    </div>
+                    <div>
+                        <h1 class="display-2 mb-0">{{ data.temperature if data.temperature is not none else 'N/A' }}°C</h1>
+                    </div>
+                </div>
+
+                <div class="row text-center">
+                    <div class="col-4 col-md-4 mb-3">
+                        <h6 class="text-muted">Air Quality</h6>
+                        {% set aq_value = data.get('air_quality') %}
+                        {% if aq_value is none %}
+                            {% set aq_value = data.get('gas') %}
+                        {% endif %}
+
+                        {% if aq_value is not none %}
+                            {% set dot_color = 'grey' %}
+                            {% if aq_value <= 50 %}
+                                {% set dot_color = 'green' %}
+                            {% elif aq_value <= 100 %}
+                                {% set dot_color = 'yellow' %}
+                            {% elif aq_value <= 150 %}
+                                {% set dot_color = 'orange' %}
+                            {% elif aq_value <= 200 %}
+                                {% set dot_color = 'red' %}
+                            {% else %}
+                                {% set dot_color = 'purple' %}
+                            {% endif %}
+                            <span class="dot" style="background-color: {{ dot_color }};"></span>
+                            <strong class="h5">{{ aq_value }} ppm</strong>
+                        {% else %}
+                            <strong class="h5">N/A</strong>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-4 col-md-4 mb-3">
+                        <h6 class="text-muted">Humidity</h6>
+                        <strong class="h5">{{ data.get('humidity', 'N/A') }}%</strong>
+                    </div>
+                    <div class="col-4 col-md-4 mb-3">
+                        <h6 class="text-muted">Rain</h6>
+                        <strong class="h5">{% if data.get('rain') is not none %}{{ 'Yes' if data.get('rain') else 'No' }}{% else %}N/A{% endif %}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row mt-3 animated-section">
+    <div class="col-12">
+        <h2><i class="fas fa-chart-line me-2"></i>Trends Analysis</h2>
+        <hr>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-thermometer-half me-2"></i>Temperature Trends</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="temperatureChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Humidity Trends</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="humidityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Air Quality Trends</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="airQualityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Rain Trends</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="rainfallChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Pass sensor data from Flask to JavaScript
+    window.sensorData = JSON.parse('{{ data_list | tojson | safe }}');
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.sensorData && Array.isArray(window.sensorData) && window.sensorData.length > 0) {
+            // Extraire les labels (timestamps) et les datasets
+        const labels = window.sensorData.map(function(entry) {
+            let ts = entry.timestamp;
+            // Assuming ts is now consistently a timestamp in milliseconds
+            let date = new Date(ts);
+            return date.toLocaleString(); // Or use a more specific format like formatDateForChart(date, 'datetime')
+        });
+            const temperatureData = window.sensorData.map(entry => entry.temperature);
+            const humidityData = window.sensorData.map(entry => entry.humidity);
+            const airQualityData = window.sensorData.map(entry => entry.gas); // ou entry.air_quality si tu as ce champ
+            const rainData = window.sensorData.map(entry => entry.rain);
+
+            // Température
+            const ctxTemp = document.getElementById('temperatureChart').getContext('2d');
+            new Chart(ctxTemp, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Température (°C)',
+                        data: temperatureData,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // Humidité
+            const ctxHum = document.getElementById('humidityChart').getContext('2d');
+            new Chart(ctxHum, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Humidité (%)',
+                        data: humidityData,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // Qualité de l'air
+            const ctxAir = document.getElementById('airQualityChart').getContext('2d');
+            new Chart(ctxAir, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Qualité de l\'air (Gas)',
+                        data: airQualityData,
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } }
+                }
+            });
+
+            // Pluie
+            const ctxRain = document.getElementById('rainfallChart').getContext('2d');
+            new Chart(ctxRain, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pluie',
+                        data: rainData,
+                        borderColor: 'rgba(0, 156, 255, 1)',
+                        backgroundColor: 'rgba(0, 156, 255, 0.2)',
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true } }
+                }
+            });
+        } else {
+            console.log('Aucune donnée capteur à afficher');
+    }
+    });
+</script>
+{% endblock %}

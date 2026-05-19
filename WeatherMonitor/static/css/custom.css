@@ -1,0 +1,275 @@
+/* HomeWeather Custom CSS */
+/* Note: Following the provided blueprint guidelines, we'll keep custom CSS to a minimum and use Bootstrap classes where possible */
+
+/* Set a blue marine background for the body */
+body {
+    background-color: #0d1a2d; /* Dark blue background */
+    color: #e0e0e0; /* Light grey text */
+    background-image: none; /* Remove the subtle pattern background if not desired */
+}
+
+/* Adjust card styling for blue marine theme */
+.card {
+    background-color: #1a2a40; /* Slightly lighter dark blue for cards */
+    color: #e0e0e0; /* Light grey text */
+    border-color: #2a3a50; /* Darker blue border */
+}
+
+.card-header {
+    background-color: #2a3a50; /* Even lighter dark blue for card headers */
+    border-bottom-color: #3a4a60; /* Slightly lighter border for headers */
+    color: #ffffff; /* White text for headers */
+}
+
+/* Specific overrides for Bootstrap primary and danger colors */
+.card-header.bg-primary {
+    background-color: #007bff !important; /* Standard Bootstrap primary blue */
+    color: #fff !important;
+}
+
+.card-header.bg-danger {
+    background-color: #dc3545 !important; /* Standard Bootstrap danger red */
+    color: #fff !important;
+}
+
+/* Table styling for blue marine theme */
+.table {
+    color: #e0e0e0;
+}
+
+.table-bordered {
+    border-color: #2a3a50;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #1f3047; /* Slightly different shade for striped tables */
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+    background-color: #1a2a40;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #2a3a50;
+}
+
+.table-danger {
+    background-color: #dc3545 !important;
+}
+
+.table-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.alert {
+    background-color: #1a2a40;
+    border-color: #2a3a50;
+    color: #e0e0e0;
+}
+
+.alert-danger {
+    background-color: #dc3545 !important;
+    border-color: #f5c2c7 !important;
+    color: #fff !important;
+}
+
+.alert-warning {
+    background-color: #ffc107 !important; /* Standard Bootstrap warning yellow */
+    border-color: #ffeeba !important;
+    color: #212529 !important; /* Dark text for warning alert */
+}
+
+/* Form control visibility in blue marine theme */
+.form-control, .form-select {
+    background-color: rgba(42, 58, 80, 0.5); /* Semi-transparent dark blue */
+    border-color: #3a4a60;
+    color: #fff;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: rgba(42, 58, 80, 0.7);
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Footer styling */
+footer {
+    background-color: #1a2a40;
+    color: #e0e0e0;
+    border-top: 1px solid #2a3a50;
+}
+
+/* Collapsible section styling */
+.btn-link {
+    color: #007bff;
+}
+.btn-link:hover {
+    color: #0056b3;
+}
+
+/* Chart Container Styles */
+.chart-container {
+    position: relative;
+    width: 100% !important;
+    height: 300px !important;
+    margin-bottom: 1rem;
+    background-color: #1a2a40; /* Consistent with card background */
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+/* Prediction Horizon dropdown menu visibility */
+.form-select option {
+    background-color: #1a2a40;
+    color: #e0e0e0;
+}
+
+/* Device detail page enhancements */
+.detail-card {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+}
+
+/* Styles for the weather map controls */
+.map-controls-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.map-layer-selector .card-body {
+    padding: 0.75rem;
+}
+
+.map-zoom-controls {
+    display: flex;
+    flex-direction: column;
+}
+
+.map-zoom-controls .btn {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.map-time-slider-overlay {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    width: 80%;
+    max-width: 700px;
+}
+
+.map-time-slider-overlay .card-body {
+    padding: 0.75rem 1rem;
+}
+
+/* Existing styles for the hero section background */
+.hero-section {
+    background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('../svg/weather-prediction.svg') no-repeat center center;
+    background-size: cover;
+    color: #333;
+    padding: 3rem 0;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.hero-section > .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-section .weather-icon {
+    font-size: 5rem;
+    margin-bottom: 0.5rem;
+    color: #ffd700;
+}
+
+.time-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #ccc;
+}
+
+.time-labels span {
+    flex: 1;
+    text-align: center;
+}
+
+.time-labels .highlight-time {
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animated-section {
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+}
+
+.dot {
+    animation: pulse 1.5s infinite;
+}
+

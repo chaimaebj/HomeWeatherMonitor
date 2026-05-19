@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Prédictions Météo</h1>
+
+    <!-- Prédictions actuelles -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Prédictions actuelles</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Tendance température:</strong> {{ predictions.temperature_trend }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Probabilité de pluie:</strong> {{ predictions.rain_probability }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Qualité de l'air:</strong> {{ predictions.air_quality_forecast }}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Niveau de confort:</strong> {{ predictions.comfort_level }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Moyennes sur 24h</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <strong>Température moyenne:</strong> {{ "%.1f"|format(averages.temperature|default(0)) }}°C
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Humidité moyenne:</strong> {{ "%.1f"|format(averages.humidity|default(0)) }}%
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Qualité de l'air moyenne:</strong> {{ "%.1f"|format(averages.air_quality|default(0)) }} ppm
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Température et Humidité</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="tempHumidityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Qualité de l'air</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="airQualityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Données pour les graphiques
+const chartData = {{ chart_data|tojson }};
+
+// Graphique température et humidité
+new Chart(document.getElementById('tempHumidityChart'), {
+    type: 'line',
+    data: {
+        labels: chartData.temperature.timestamps,
+        datasets: [{
+            label: 'Température (°C)',
+            data: chartData.temperature.values,
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }, {
+            label: 'Humidité (%)',
+            data: chartData.humidity.values,
+            borderColor: 'rgb(54, 162, 235)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: false
+            }
+        }
+    }
+});
+
+// Graphique qualité de l'air
+new Chart(document.getElementById('airQualityChart'), {
+    type: 'line',
+    data: {
+        labels: chartData.air_quality.timestamps,
+        datasets: [{
+            label: 'Qualité de l\'air (ppm)',
+            data: chartData.air_quality.values,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %} 

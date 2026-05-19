@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts - HomeWeather{% endblock %}
+
+{% block page_title %}Alert History{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-bell me-2"></i>All Alerts</h3>
+                
+                <!-- Filter Controls -->
+                <div class="d-flex">
+                    <div class="form-check form-switch me-3">
+                        <input class="form-check-input" type="checkbox" id="showAcknowledgedSwitch" checked>
+                        <label class="form-check-label" for="showAcknowledgedSwitch">Show Acknowledged</label>
+                    </div>
+                    <select id="alertTypeFilter" class="form-select form-select-sm me-2" style="width: auto;">
+                        <option value="all">All Types</option>
+                        <option value="temperature">Temperature</option>
+                        <option value="humidity">Humidity</option>
+                        <option value="rain">Rain</option>
+                        <option value="air_quality">Air Quality</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                {% if alerts_by_date %}
+                    {% for date, alerts in alerts_by_date.items() %}
+                    <div class="alert-date-group mb-4">
+                        <h5 class="date-header">
+                            <i class="far fa-calendar-alt me-2"></i>{{ date }}
+                        </h5>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover alert-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Device</th>
+                                        <th>Type</th>
+                                        <th>Message</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for alert in alerts %}
+                                    <tr class="{% if not alert.acknowledged %}table-warning{% endif %} alert-row" 
+                                        data-acknowledged="{{ alert.acknowledged|lower }}"
+                                        data-type="{{ alert.alert_type }}">
+                                        <td>{{ alert.timestamp.strftime('%H:%M:%S') }}</td>
+                                        <td>{{ alert.device_id }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if 'temperature' in alert.alert_type %}bg-danger
+                                                {% elif 'humidity' in alert.alert_type %}bg-primary
+                                                {% elif 'rain' in alert.alert_type %}bg-info
+                                                {% elif 'air_quality' in alert.alert_type %}bg-warning
+                                                {% else %}bg-secondary{% endif %}">
+                                                {{ alert.alert_type.replace('_', ' ').title() }}
+                                            </span>
+                                        </td>
+                                        <td>{{ alert.message }}</td>
+                                        <td>
+                                            {% if alert.acknowledged %}
+                                            <span class="badge bg-success">Acknowledged</span>
+                                            {% else %}
+                                            <form action="{{ url_for('main.acknowledge_alert', alert_id=alert.id) }}" method="post" class="d-inline">
+                                                <input type="hidden" name="next" value="{{ url_for('main.alerts') }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-warning">Acknowledge</button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No alerts recorded. This is a good thing!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h3><i class="fas fa-exclamation-triangle me-2"></i>Alert Settings</h3>
+            </div>
+            <div class="card-body">
+                <p>You can customize your alert thresholds in the <a href="{{ url_for('main.settings') }}">Settings page</a>.</p>
+                
+                <h5 class="mt-4">Alert Types</h5>
+                <ul class="list-group">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger me-2">Temperature High</span>
+                            When temperature exceeds your maximum threshold
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-info me-2">Temperature Low</span>
+                            When temperature drops below your minimum threshold
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-primary me-2">Humidity High</span>
+                            When humidity exceeds your maximum threshold
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-warning me-2">Humidity Low</span>
+                            When humidity drops below your minimum threshold
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger me-2">Air Quality High</span>
+                            When air quality (PPM) exceeds your threshold
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-info me-2">Rain Detected</span>
+                            When rain is detected by the rain sensor
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-pie me-2"></i>Alert Statistics</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="alertTypeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Alert filtering functionality
+    const showAcknowledgedSwitch = document.getElementById('showAcknowledgedSwitch');
+    const alertTypeFilter = document.getElementById('alertTypeFilter');
+    const alertRows = document.querySelectorAll('.alert-row');
+    
+    function updateAlertVisibility() {
+        const showAcknowledged = showAcknowledgedSwitch.checked;
+        const selectedType = alertTypeFilter.value;
+        
+        alertRows.forEach(row => {
+            const isAcknowledged = row.dataset.acknowledged === 'true';
+            const alertType = row.dataset.type;
+            
+            // Show/hide based on acknowledged status
+            let shouldShow = true;
+            
+            if (!showAcknowledged && isAcknowledged) {
+                shouldShow = false;
+            }
+            
+            // Filter by type if not "all"
+            if (selectedType !== 'all' && !alertType.includes(selectedType)) {
+                shouldShow = false;
+            }
+            
+            row.style.display = shouldShow ? '' : 'none';
+        });
+        
+        // Check if each date group has visible rows and hide empty groups
+        document.querySelectorAll('.alert-date-group').forEach(group => {
+            const visibleRows = group.querySelectorAll('.alert-row[style=""]').length;
+            group.style.display = visibleRows > 0 ? '' : 'none';
+        });
+    }
+    
+    showAcknowledgedSwitch.addEventListener('change', updateAlertVisibility);
+    alertTypeFilter.addEventListener('change', updateAlertVisibility);
+    
+    // Initialize alert chart
+    const alertCounts = {
+        'temperature': 0,
+        'humidity': 0,
+        'rain': 0,
+        'air_quality': 0
+    };
+    
+    // Count alerts by type
+    alertRows.forEach(row => {
+        const type = row.dataset.type;
+        Object.keys(alertCounts).forEach(key => {
+            if (type.includes(key)) {
+                alertCounts[key]++;
+            }
+        });
+    });
+    
+    // Create chart
+    const ctx = document.getElementById('alertTypeChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Temperature', 'Humidity', 'Rain', 'Air Quality'],
+            datasets: [{
+                data: [
+                    alertCounts['temperature'],
+                    alertCounts['humidity'],
+                    alertCounts['rain'],
+                    alertCounts['air_quality']
+                ],
+                backgroundColor: [
+                    '#dc3545',  // danger
+                    '#0d6efd',  // primary 
+                    '#0dcaf0',  // info
+                    '#ffc107'   // warning
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Alert Distribution by Type'
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

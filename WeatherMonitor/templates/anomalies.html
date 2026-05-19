@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4"><i class="fas fa-exclamation-triangle me-2"></i>Anomaly Detection</h1>
+    <hr>
+
+    <!-- Anomalies Summary -->
+    <div class="mb-4">
+        <div class="col-md-12 p-0">
+            <div class="card shadow">
+                <div class="card-header bg-danger">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>Detected Anomalies</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="mb-0">{{ mesures_anomalies|selectattr('1', 'equalto', true)|list|length }}</h3>
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    </div>
+                    <p class="text-muted mb-0">Anomalies detected in the last 24h</p>
+                    {% set anomalies_detectees = mesures_anomalies|selectattr('1', 'equalto', true)|list %}
+                    {% if anomalies_detectees %}
+                        <ul class="list-unstyled mt-2">
+                            {% for mesure, is_anom in anomalies_detectees %}
+                                <li>
+                                    <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                                    Anomaly on
+                                    {% set details = [] %}
+                                    {% if mesure.temperature is not none and (mesure.temperature < 0 or mesure.temperature > 50) %}
+                                        {% set _ = details.append('temperature') %}
+                                    {% endif %}
+                                    {% if mesure.humidity is not none and (mesure.humidity < 20 or mesure.humidity > 80) %}
+                                        {% set _ = details.append('humidity') %}
+                                    {% endif %}
+                                    {% if mesure.rain is not none and mesure.rain > 50 %}
+                                        {% set _ = details.append('rain') %}
+                                    {% endif %}
+                                    {% if mesure.gas is not none and mesure.gas > 100 %}
+                                        {% set _ = details.append('air quality') %}
+                                    {% endif %}
+                                    {{ details|join(', ') }}
+                                    at
+                                    {% if mesure.timestamp %}
+                                        {{ mesure.timestamp | timestamp_to_date }}
+                                    {% else %}
+                                        (unknown time)
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Measurements Table -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Latest Measurements</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Temperature (°C)</th>
+                            <th>Humidity (%)</th>
+                            <th>Rain (mm)</th>
+                            <th>Gas</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for mesure, is_anom in mesures_anomalies %}
+                        <tr {% if is_anom %}class="table-danger"{% endif %}>
+                            <td>
+                              {% if mesure.timestamp %}
+                                {% if mesure.timestamp.__class__.__name__ == 'datetime' %}
+                                  {{ mesure.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                {% else %}
+                                  {{ mesure.timestamp | timestamp_to_date }}
+                                {% endif %}
+                              {% else %}
+                                ?
+                              {% endif %}
+                            </td>
+                            <td>{{ mesure.temperature }}</td>
+                            <td>{{ mesure.humidity }}</td>
+                            <td>{{ mesure.rain }}</td>
+                            <td>{{ mesure.gas }}</td>
+                            <td>
+                                {% if is_anom %}
+                                    <span class="badge bg-danger">Anomaly</span>
+                                {% else %}
+                                    <span class="badge bg-success">Normal</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Prepare data for charts
+    const timestamps = [];
+    const temperatures = [];
+    const humidities = [];
+    const anomalies = [];
+
+    {% for mesure, is_anom in mesures_anomalies %}
+        {% if mesure.timestamp %}
+            timestamps.push('{{ mesure.timestamp | timestamp_to_date }}');
+            temperatures.push({{ mesure.temperature|default('null') }});
+            humidities.push({{ mesure.humidity|default('null') }});
+            anomalies.push({{ 'true' if is_anom else 'false' }});
+        {% endif %}
+    {% endfor %}
+
+    // Chart configuration
+    const chartConfig = {
+        type: 'line',
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        displayFormats: {
+                            hour: 'HH:mm'
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Temperature chart
+    new Chart(document.getElementById('temperatureChart'), {
+        ...chartConfig,
+        data: {
+            labels: timestamps,
+            datasets: [{
+                label: 'Temperature',
+                data: temperatures,
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.4
+            }]
+        }
+    });
+
+    // Humidity chart
+    new Chart(document.getElementById('humidityChart'), {
+        ...chartConfig,
+        data: {
+            labels: timestamps,
+            datasets: [{
+                label: 'Humidity',
+                data: humidities,
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                tension: 0.4
+            }]
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 
