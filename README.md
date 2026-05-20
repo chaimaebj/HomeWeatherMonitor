@@ -222,14 +222,3 @@ Les logs sont sauvegardés dans le dossier `logs/`
 
 Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-## 👤 Auteur
-
-[Votre nom/pseudo]
-
-## 📞 Support
-
-Pour toute question ou problème, ouvrir une issue sur GitHub.
-
----
-
-**Remarque** : Assurez-vous que tous les fichiers sensibles (.env, firebase_service_account.json) sont dans `.gitignore` avant de pusher.
