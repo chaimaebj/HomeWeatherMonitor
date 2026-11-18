@@ -182,15 +182,6 @@ python train_predictor.py
 - Validation des formulaires (CSRF protection)
 - Hachage des mots de passe
 
-## ⚠️ Fichiers à ne pas commiter
-
-Les fichiers suivants sont automatiquement ignorés :
-- `.env` (variables d'environnement)
-- `firebase_service_account.json` (clés Firebase)
-- `venv/` (environnement virtuel)
-- `__pycache__/` (cache Python)
-- `*.pkl` (modèles ML)
-
 ## 🐛 Troubleshooting
 
 ### Erreur de connexion Firebase
